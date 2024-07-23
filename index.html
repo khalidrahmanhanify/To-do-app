@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo App</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="shortcut icon" type="x-icon" href="images/list.png" />
+  </head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+    /* Existing CSS */
+    #progress-bar-container {
+      position: relative;
+      height: 30px; /* Default height */
+      background-color: #e0e0e0;
+      border-radius: 10px; /* Default border-radius */
+    }
+
+    #progress-bar {
+      height: 100%; /* Ensure it takes the full height of the container */
+      background-color: #76c7c0;
+      border-radius: inherit; /* Inherit border-radius from the container */
+      border: none; /* Ensure no default border */
+    }
+
+    #progress-bar-menu {
+      cursor: pointer;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      color: #555;
+    }
+
+    .dropdown-content label {
+      display: block;
+      padding: 8px;
+      margin: 5px 0;
+    }
+
+    .dropdown-content input[type="color"] {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      vertical-align: middle;
+      margin-left: 5px;
+    }
+
+    .dropdown-content input[type="number"],
+    .dropdown-content input[type="text"] {
+      width: 100px;
+      margin-left: 5px;
+    }
+
+    #progress-bar-dropdown {
+      display: none;
+    }
+
+    #progress-bar-dropdown.show {
+      display: block;
+    }
+
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #153f75, #269fe5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    .todo-app {
+      width: 100%;
+      max-width: 600px;
+      background: #fff;
+      padding: 40px 30px 70px;
+      border-radius: 10px;
+    }
+
+    .todo-app h2 {
+      color: #002765;
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .todo-app h2 img {
+      width: 30px;
+      margin-left: 10px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #edeef0;
+      border-radius: 30px;
+      padding-left: 20px;
+      margin-bottom: 25px;
+    }
+
+    input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 10px;
+    }
+
+    button {
+      border: none;
+      outline: none;
+      padding: 16px 50px;
+      background: #ff5945;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 40px;
+    }
+
+    ul {
+      padding: 0;
+    }
+
+    ul li {
+      list-style: none;
+      font-size: 17px;
+      padding: 12px 8px 12px 50px;
+      user-select: none;
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    ul li::before {
+      content: "";
+      position: absolute;
+      height: 28px;
+      width: 28px;
+      border-radius: 50%;
+      background-image: url(images/unchecked.png);
+      background-size: cover;
+      background-position: center;
+      top: 50%;
+      left: 15px;
+      transform: translateY(-50%);
+      transition: background-image 0.3s ease;
+    }
+
+    ul li.checked {
+      color: #555;
+      text-decoration: line-through;
+    }
+
+    ul li.checked::before {
+      background-image: url(images/checked.png);
+    }
+
+    ul li span {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      font-size: 22px;
+      color: #555;
+      line-height: 40px;
+      text-align: center;
+      border-radius: 50%;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+
+    ul li span:hover {
+      background: #edeef0;
+    }
+
+    #progress-bar-fill {
+      height: 100%;
+      background-color: #4caf50;
+      transition: width 0.3s ease;
+    }
+
+    #progress-bar-container {
+      width: 100%;
+      background-color: #e0e0e0;
+      border-radius: 5px;
+      margin: 10px 0;
+      height: 20px;
+      position: relative;
+    }
+
+    #progress-bar {
+      width: 0;
+      height: 100%;
+      background-color: #4caf50;
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
+
+    #progress-percentage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #333;
+      font-weight: bold;
+    }
+
+    span.menu {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      color: #555;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 30px;
+      right: 0;
+      background-color: #f9f9f9;
+      min-width: 200px;
+      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .dropdown-content.show {
+      display: block;
+      max-height: 300px;
+    }
+
+    .dropdown-content .dropdown-item {
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+    }
+    /* Existing CSS */
+    #progress-bar-menu {
+      cursor: pointer;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      color: #555;
+    }
+
+    .dropdown-content label {
+      display: block;
+      padding: 8px;
+      margin: 5px 0;
+    }
+
+    .dropdown-content input[type="color"] {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      vertical-align: middle;
+      margin-left: 5px;
+    }
+
+    .dropdown-content input[type="number"],
+    .dropdown-content input[type="text"] {
+      width: 100px;
+      margin-left: 5px;
+    }
+
+    #progress-bar-dropdown {
+      display: none;
+    }
+
+    #progress-bar-dropdown.show {
+      display: block;
+    }
+
+    .dropdown-content .dropdown-item input[type="color"],
+    .dropdown-content .dropdown-item input[type="checkbox"] {
+      margin-right: 10px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin-left: 10px;
+      padding: 0;
+      border: none;
+    }
+    .dropdown-item input {
+      padding-right: 10px;
+    }
+    .dropdown-content button {
+      color: black;
+      padding: 8px 16px;
+      text-decoration: none;
+      display: block;
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      transition: background-color 0.3s ease;
+    }
+
+    .dropdown-content button:hover {
+      background-color: #f1f1f1;
+    }
+
+    .edit {
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    li.checked .edit {
+      display: block;
+    }
+  </style>
+  <body>
+    <div class="container">
+      <div class="todo-app">
+        <h2>To-do list <img src="images/icon.png" alt="icon" /></h2>
+        <div class="row">
+          <input type="text" id="input-box" placeholder="Add task" />
+          <button id="add-button">Add</button>
+        </div>
+        <div id="progress-bar-container">
+          <div id="progress-bar"></div>
+          <span id="progress-percentage"></span>
+          <span id="progress-bar-menu">&#x22EE;</span>
+          <div id="progress-bar-dropdown" class="dropdown-content">
+            <label>
+              Progress Bar Color:
+              <input type="color" id="progress-bar-color" />
+            </label>
+            <label>
+              Container Background Color:
+              <input type="color" id="container-bg-color" />
+            </label>
+            <label>
+              Percentage Color:
+              <input type="color" id="percentage-color" />
+            </label>
+            <label>
+              Height (px):
+              <input
+                type="number"
+                id="progress-bar-height"
+                min="10"
+                max="100"
+              />
+            </label>
+            <label>
+              Border Radius (px):
+              <input
+                type="number"
+                id="progress-bar-border-radius"
+                min="0"
+                max="50"
+              />
+            </label>
+            <label>
+              Border:
+              <input
+                type="text"
+                id="progress-bar-border"
+                placeholder="e.g., 2px solid #000"
+              />
+            </label>
+            <label>
+              Show Percentage:
+              <input type="checkbox" id="toggle-percentage" />
+            </label>
+          </div>
+        </div>
+        <ul id="list-container"></ul>
+      </div>
+    </div>
+    <!-- <script src="script.js"></script> -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const inputBox = document.getElementById("input-box");
+        const listContainer = document.getElementById("list-container");
+        const progressBar = document.getElementById("progress-bar");
+        const progressBarContainer = document.getElementById(
+          "progress-bar-container"
+        );
+        const progressBarMenu = document.getElementById("progress-bar-menu");
+        const progressBarDropdown = document.getElementById(
+          "progress-bar-dropdown"
+        );
+        const progressBarColorPicker =
+          document.getElementById("progress-bar-color");
+        const containerBgColorPicker =
+          document.getElementById("container-bg-color");
+        const percentageColorPicker =
+          document.getElementById("percentage-color");
+        const togglePercentageCheckbox =
+          document.getElementById("toggle-percentage");
+        const progressBarHeightInput = document.getElementById(
+          "progress-bar-height"
+        );
+        const progressBarBorderRadiusInput = document.getElementById(
+          "progress-bar-border-radius"
+        );
+        const progressBarBorderInput = document.getElementById(
+          "progress-bar-border"
+        );
+        const progressPercentage = document.getElementById(
+          "progress-percentage"
+        );
+        const addButton = document.getElementById("add-button");
+
+        function addTask() {
+          if (inputBox.value.trim() === "") {
+            alert("You must write something!");
+            return;
+          }
+
+          let li = createTaskElement(inputBox.value.trim());
+          listContainer.prepend(li);
+          inputBox.value = "";
+          saveData();
+          updateProgressBar();
+        }
+
+        function createTaskElement(taskText) {
+          let li = document.createElement("li");
+          li.textContent = taskText;
+
+          let spanMenu = document.createElement("span");
+          spanMenu.innerHTML = "\u22EE"; // Three dots symbol
+          spanMenu.className = "menu";
+          spanMenu.onclick = function (e) {
+            e.stopPropagation();
+            toggleDropdown(li);
+          };
+          li.appendChild(spanMenu);
+
+          let dropdown = document.createElement("div");
+          dropdown.className = "dropdown-content";
+
+          let editButton = document.createElement("button");
+          editButton.innerHTML = "Edit";
+          editButton.className = "edit";
+          editButton.onclick = function (e) {
+            e.stopPropagation();
+            editTask(li);
+            closeDropdown(dropdown);
+          };
+
+          let deleteButton = document.createElement("button");
+          deleteButton.innerHTML = "Delete";
+          deleteButton.onclick = function () {
+            li.remove();
+            saveData();
+            updateProgressBar();
+            closeDropdown(dropdown);
+          };
+
+          dropdown.appendChild(editButton);
+          dropdown.appendChild(deleteButton);
+          li.appendChild(dropdown);
+
+          li.addEventListener("click", function () {
+            this.classList.toggle("checked");
+            saveData();
+            updateProgressBar();
+          });
+
+          return li;
+        }
+
+        function editTask(li) {
+          let currentText = li.childNodes[0].textContent.trim();
+          let newText = prompt("Edit your task:", currentText);
+          if (newText === null || newText === "") {
+            alert("You must write something!");
+          } else {
+            li.childNodes[0].textContent = newText;
+            saveData();
+          }
+        }
+
+        function saveData() {
+          localStorage.setItem("todoList", listContainer.innerHTML);
+          saveSettings();
+        }
+
+        function loadTasks() {
+          listContainer.innerHTML = localStorage.getItem("todoList") || "";
+          let items = listContainer.querySelectorAll("li");
+          items.forEach(function (item) {
+            initializeTaskItem(item);
+          });
+          updateProgressBar();
+        }
+
+        function initializeTaskItem(item) {
+          item.addEventListener("click", function () {
+            this.classList.toggle("checked");
+            saveData();
+            updateProgressBar();
+          });
+
+          let menu = item.querySelector(".menu");
+          menu.onclick = function (e) {
+            e.stopPropagation();
+            toggleDropdown(item);
+          };
+
+          let editBtn = item.querySelector(".edit");
+          if (editBtn) {
+            editBtn.onclick = function (e) {
+              e.stopPropagation();
+              editTask(item);
+              closeDropdown(item.querySelector(".dropdown-content"));
+            };
+          }
+
+          let deleteBtn = item.querySelector(
+            ".dropdown-content button:nth-child(2)"
+          );
+          if (deleteBtn) {
+            deleteBtn.onclick = function () {
+              item.remove();
+              saveData();
+              updateProgressBar();
+              closeDropdown(item.querySelector(".dropdown-content"));
+            };
+          }
+        }
+
+        function toggleDropdown(li) {
+          let dropdown = li.querySelector(".dropdown-content");
+          if (dropdown.classList.contains("show")) {
+            closeDropdown(dropdown);
+          } else {
+            closeDropdown();
+            dropdown.classList.add("show");
+            document.addEventListener("click", closeDropdownOutside);
+          }
+        }
+
+        function closeDropdown(dropdown) {
+          let dropdowns = document.querySelectorAll(".dropdown-content.show");
+          dropdowns.forEach(function (dropdown) {
+            dropdown.classList.remove("show");
+          });
+          document.removeEventListener("click", closeDropdownOutside);
+        }
+
+        function closeDropdownOutside(e) {
+          let dropdowns = document.querySelectorAll(".dropdown-content.show");
+          dropdowns.forEach(function (dropdown) {
+            if (!dropdown.contains(e.target)) {
+              dropdown.classList.remove("show");
+            }
+          });
+          document.removeEventListener("click", closeDropdownOutside);
+        }
+
+        inputBox.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            addTask();
+          }
+        });
+
+        addButton.addEventListener("click", addTask);
+
+        function updateProgressBar() {
+          const totalTasks = listContainer.querySelectorAll("li").length;
+          const completedTasks =
+            listContainer.querySelectorAll("li.checked").length;
+          const progress =
+            totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+          progressBar.style.width = progress + "%";
+          progressPercentage.textContent = progress.toFixed(0) + "%";
+        }
+
+        function toggleProgressBarDropdown() {
+          progressBarDropdown.classList.toggle("show");
+        }
+
+        progressBarMenu.addEventListener("click", function (e) {
+          e.stopPropagation();
+          toggleProgressBarDropdown();
+        });
+
+        progressBarColorPicker.addEventListener("input", function () {
+          progressBar.style.backgroundColor = this.value;
+          saveSettings();
+        });
+
+        containerBgColorPicker.addEventListener("input", function () {
+          progressBarContainer.style.backgroundColor = this.value;
+          saveSettings();
+        });
+
+        percentageColorPicker.addEventListener("input", function () {
+          progressPercentage.style.color = this.value;
+          saveSettings();
+        });
+
+        progressBarHeightInput.addEventListener("input", function () {
+          progressBarContainer.style.height = this.value + "px";
+          progressBar.style.height = "100%"; // Ensure the progress bar takes the full height of the container
+          saveSettings();
+        });
+
+        progressBarBorderRadiusInput.addEventListener("input", function () {
+          progressBarContainer.style.borderRadius = this.value + "px";
+          progressBar.style.borderRadius = "inherit"; // Ensure the progress bar inherits the border-radius from the container
+          saveSettings();
+        });
+
+        progressBarBorderInput.addEventListener("input", function () {
+          progressBarContainer.style.border = this.value;
+          saveSettings();
+        });
+
+        togglePercentageCheckbox.addEventListener("change", function () {
+          progressPercentage.style.display = this.checked ? "block" : "none";
+          saveSettings();
+        });
+
+        document.addEventListener("click", function (e) {
+          if (
+            !progressBarDropdown.contains(e.target) &&
+            !progressBarMenu.contains(e.target)
+          ) {
+            progressBarDropdown.classList.remove("show");
+          }
+        });
+
+        function saveSettings() {
+          const settings = {
+            progressBarColor: progressBarColorPicker.value,
+            containerBgColor: containerBgColorPicker.value,
+            percentageColor: percentageColorPicker.value,
+            showPercentage: togglePercentageCheckbox.checked,
+            progressBarHeight: progressBarHeightInput.value,
+            progressBarBorderRadius: progressBarBorderRadiusInput.value,
+            progressBarBorder: progressBarBorderInput.value,
+          };
+          localStorage.setItem("settings", JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+          const settings = JSON.parse(localStorage.getItem("settings"));
+          if (settings) {
+            progressBarColorPicker.value = settings.progressBarColor;
+            progressBar.style.backgroundColor = settings.progressBarColor;
+
+            containerBgColorPicker.value = settings.containerBgColor;
+            progressBarContainer.style.backgroundColor =
+              settings.containerBgColor;
+
+            percentageColorPicker.value = settings.percentageColor;
+            progressPercentage.style.color = settings.percentageColor;
+
+            togglePercentageCheckbox.checked = settings.showPercentage;
+            progressPercentage.style.display = settings.showPercentage
+              ? "block"
+              : "none";
+
+            progressBarHeightInput.value = settings.progressBarHeight;
+            progressBarContainer.style.height =
+              settings.progressBarHeight + "px";
+            progressBar.style.height = "100%";
+
+            progressBarBorderRadiusInput.value =
+              settings.progressBarBorderRadius;
+            progressBarContainer.style.borderRadius =
+              settings.progressBarBorderRadius + "px";
+            progressBar.style.borderRadius = "inherit";
+
+            progressBarBorderInput.value = settings.progressBarBorder;
+            progressBarContainer.style.border = settings.progressBarBorder;
+          }
+        }
+
+        loadTasks();
+        loadSettings();
+      });
+    </script>
+  </body>
+</html>
